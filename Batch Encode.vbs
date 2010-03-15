@@ -1,35 +1,35 @@
 '################################################################################
-'#   Auto HandbrakeCLI Script for Windows XP/Vista/7				#
-'#   Copyright (C) 2009-2010  Matt Lovett <mattlovett(at)mattlovett.com>	#
-'#   										#
-'#   Based On:									#
-'#	 Auto HandbrakeCLI Script						#
-'#   Copyright (C) 2009-2010  Curtis Lee Bolin <curtlee2002(at)gmail.com>	#
-'#   										#
-'#	 									#
-'#   This program is free software: you can redistribute it and/or modify	#
-'#   it under the terms of the GNU General Public License as published by	#
-'#   the Free Software Foundation, either version 3 of the License, or		#
-'#   (at your option) any later version.					#
-'#										#
-'#   This program is distributed in the hope that it will be useful,		#	
-'#   but WITHOUT ANY WARRANTY; without even the implied warranty of		#
+'#   Auto HandbrakeCLI Script for Windows XP/Vista/7							#
+'#   Copyright (C) 2009-2010  Matt Lovett <mattlovett(at)mattlovett.com>		#
+'#   																			#
+'#   Based On:																	#
+'#	 Auto HandbrakeCLI Script													#
+'#   Copyright (C) 2009-2010  Curtis Lee Bolin <curtlee2002(at)gmail.com>		#
+'#   																			#
+'#	 																			#
+'#   This program is free software: you can redistribute it and/or modify		#
+'#   it under the terms of the GNU General Public License as published by		#
+'#   the Free Software Foundation, either version 3 of the License, or			#
+'#   (at your option) any later version.										#
+'#																				#
+'#   This program is distributed in the hope that it will be useful,			#	
+'#   but WITHOUT ANY WARRANTY; without even the implied warranty of				#
 '#   MERCHANTaudioBitRateILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the	#
-'#   GNU General Public License for more details.				#
-'#										#
-'#   You should have received a copy of the GNU General Public License		#
-'#   along with this program.  If not, see <http://www.gnu.org/licenses/>.	#
+'#   GNU General Public License for more details.								#
+'#																				#
+'#   You should have received a copy of the GNU General Public License			#
+'#   along with this program.  If not, see <http://www.gnu.org/licenses/>.		#
 '################################################################################
 
 '================================================================================
-'			    User Modifible Settings
+'								User Modifible Settings
 '================================================================================
 
 '****************************** File Extensions *********************************
 'The flowing extensions will be detected and transcoded with HandBrake
 Filetype1 = "avi"
 Filetype2 = "flv"
-Filetype3 = "sio"
+Filetype3 = "iso"
 Filetype4 = "mkv"
 Filetype5 = "mp4"
 Filetype6 = "mpeg"
@@ -39,20 +39,25 @@ Filetype9 = "VOB"
 Filetype10 = "zzz"
 
 '****************************** Encoder Settings *********************************
-'Location of required Exacutables
-strHBlocation 		= "C:\handbrake\HandBrakeCLI.exe"
-strMPLocation		= "C:\mplayer\mplayer.exe"
+'Location of HandBrake exe files
+	strHBlocation 		= "C:\handbrake\HandBrakeCLI.exe" 
+'Location of MPlayer exe files
+	strMPLocation		= "C:\mplayer\mplayer.exe"		  
 
-'Handbrake Video Settings
-strContainerType	= "mkv"
-strVideoSettings	= " --encoder x264 --two-pass --turbo --vb 768 --decomb --loose-anamorphic"
-strX264Settings 	= " --x264opts b-adapt=2:rc-lookahead=50"
-'strX264Settings 	= " --x264opts subq=6:partitions=all:8x8dct:me=umh:frameref=5:bframes=3:b-pyramid=1:weightb=1"
-'strX264Settings 	= " --x264opts ref=6:mixed-refs=1:bframes=3:b-pyramid=1:weightb=1:subme=7:trellis=2:analyse=all:8x8dct=1:no-fast-pskip=1:no-dct-decimate=1:me=umh:merange=64:filter=-2,-1:direct=auto"
+	
+'conatiner for new video files
+	strContainerType	= "mkv"				
+'Options that control quality settings of transcoded video
+	strVideoSettings	= " --encoder x264 --two-pass --turbo --vb 768 --decomb --loose-anamorphic"
+'Video codec settings used when --encoder = x264  uncomment only one setting
+	strX264Settings 	= " --x264opts b-adapt=2:rc-lookahead=50"
+	'strX264Settings 	= " --x264opts subq=6:partitions=all:8x8dct:me=umh:frameref=5:bframes=3:b-pyramid=1:weightb=1"
+	
 
-'Handbrake Audio Settings
-strNonAACAudio 	= " --audio 1 --aencoder faac --ab 128 --mixdown dpl2 --arate 48 --drc 2.0"
-strAACAudio		= " --audio 1 --aencoder ac3"
+'Audio settings used when the source files doesn't have AC3 audio
+	strNonAACAudio 	= " --audio 1 --aencoder faac --ab 128 --mixdown dpl2 --arate 48 --drc 2.0"
+'Audio Settings used when the source files have AC3 audio, default is passthrough
+	strAACAudio		= " --audio 1 --aencoder ac3"
 
 'Other HandBrake Settings 
 strSubtitleSettings = " --native-language eng --subtitle-forced scan --subtitle scan"

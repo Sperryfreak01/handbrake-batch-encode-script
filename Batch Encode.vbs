@@ -70,62 +70,49 @@ strOutputFolder 	= "Encoded Files"
 '================================================================================
 '							Modify Below at Your Own Risk
 '================================================================================
-CLIcommands = "Error no files to encode"
-
 dim FileCount			'number of files that will be encoded
 dim strCLIcommands		'String  containing the location of HB, CLI paramaters, 
 dim Movie2Encode	
 dim strAC3 
 
+CLIcommands = "Error no files to encode"
 strAC3 = "False"	
 
 'Main routine
 
-'Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
-'If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
-		'Wscript.Echo "Found HandBrakeCLI"                				'Alterts user that handbrake has been found
-'		FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
-	'	Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
-		DependChk
-		CreateFolder (strOutputFolder)
-		
-		Set objFSOEncode = CreateObject("Scripting.FileSystemObject")
-		Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)
+DependChk 			'check if the files needed to run script are present in spec'd location
+CreateFolder (strOutputFolder)	'creates a folder for encoded files
 	
-		Do Until objFile.AtEndOfStream
-			PathofMovie = objFile.ReadLine
-			Encode PathofMovie, strHBlocation
-			Logger strCLIcommands, Movie2Encode	
-		Loop
-		objFile.Close
-		Wscript.quit
+Set objFSOEncode = CreateObject("Scripting.FileSystemObject")	'connects to system object to read text files
+Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)		'opens the list of files with correct extensions
 	
-	'Else																'If HandBrake not found prompt user to locate it		
-	'	Wscript.Echo "Cannot locate HandBrake please download and install to c:\handbrake"
-	'	Wscript.quit
-'End If
+	Do Until objFile.AtEndOfStream				'for each file in the filelist.txt					
+		PathofMovie = objFile.ReadLine			'read in the location of the file
+		Encode PathofMovie, strHBlocation		'encode the file 
+		Logger strCLIcommands, Movie2Encode		'log the action taken by the encoder
+	Loop										'do it untill all the files have been encoded
+	objFile.Close								'closes the system object used to read the filelist
+	Wscript.quit								'close the script
+
+
+	
+	
+	
+	
 
 sub DependChk
 	Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
-	If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
-		'Wscript.Echo "Found HandBrakeCLI"                				'Alterts user that handbrake has been found
-		FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
-		Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
-		'CreateFolder (strOutputFolder)
-		'
-		'Set objFSOEncode = CreateObject("Scripting.FileSystemObject")
-		'Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)
-	'
-		'Do Until objFile.AtEndOfStream
-		'	PathofMovie = objFile.ReadLine
-		'	Encode PathofMovie, strHBlocation
-		'	Logger strCLIcommands, Movie2Encode	
-		'Loop
-		'objFile.Close
-		'Wscript.quit
 	
+	If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
+		If objFSOSearch.FileExists(strMPLocation) Then
+			FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
+			Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
+		Else	
+			Wscript.Echo "Cannot locate Mplayer please download and install to " & strMPLocation
+		Wscript.quit
+		End If
 	Else																'If HandBrake not found prompt user to locate it		
-		Wscript.Echo "Cannot locate HandBrake please download and install to c:\handbrake"
+		Wscript.Echo "Cannot locate HandBrake please download and install to " & strHBlocation
 		Wscript.quit
 	End If
 	End Sub

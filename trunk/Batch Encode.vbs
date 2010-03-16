@@ -74,12 +74,11 @@ dim FileCount			'number of files that will be encoded
 dim strCLIcommands		'String  containing the location of HB, CLI paramaters, 
 dim Movie2Encode	
 dim strAC3 
-
+FileCount 	= 0
 CLIcommands = "Error no files to encode"
-strAC3 = "False"	
+strAC3 		= "False"	
 
 'Main routine
-
 DependChk 			'check if the files needed to run script are present in spec'd location
 CreateFolder (strOutputFolder)	'creates a folder for encoded files
 	
@@ -93,28 +92,27 @@ Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)		'opens the list of 
 	Loop										'do it untill all the files have been encoded
 	objFile.Close								'closes the system object used to read the filelist
 	Wscript.quit								'close the script
-
-
-	
-	
-	
 	
 
 sub DependChk
-	Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
-	
-	If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
-		If objFSOSearch.FileExists(strMPLocation) Then
-			FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
-			Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
-		Else	
-			Wscript.Echo "Cannot locate Mplayer please download and install to " & strMPLocation
-		Wscript.quit
+	Set objFSOSearch = CreateObject("Scripting.FileSystemObject")	'System calls for accessing file system
+		If objFSOSearch.FileExists(strHBlocation) Then				'Looks for handBrake files in location specified in the user settings
+			If objFSOSearch.FileExists(strMPLocation) Then			'If Handbrake found look for MPlayer
+				FindFiles (".\")									'gather list of files in script directory with correct extensions, if all dependacies located
+				If Not FileCount = 0 Then							'Tell the user how many files found and prompt them to continue
+					Wscript.Echo "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
+				Else	
+					Wscript.Echo "No compatabile files found"		'If no files found tell the user and exit
+					Wscript.quit
+				End If
+			Else													'If MPlayer not found ask user to install it and exit
+				Wscript.Echo "Cannot locate Mplayer please download and install to " & strMPLocation
+				Wscript.quit
+			End If
+		Else														'If HandBrake not found prompt user to locate it		
+			Wscript.Echo "Cannot locate HandBrake please download and install to " & strHBlocation
+			Wscript.quit
 		End If
-	Else																'If HandBrake not found prompt user to locate it		
-		Wscript.Echo "Cannot locate HandBrake please download and install to " & strHBlocation
-		Wscript.quit
-	End If
 	End Sub
 
 Sub Encode (Movie2Encode, HBPath)

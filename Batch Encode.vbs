@@ -58,11 +58,15 @@ Filetype10 = "zzz"
 	strNonAACAudio 	= " --audio 1 --aencoder faac --ab 128 --mixdown dpl2 --arate 48 --drc 2.0"
 'Audio Settings used when the source files have AC3 audio, default is passthrough
 	strAACAudio		= " --audio 1 --aencoder ac3"
+	
 
 'Other HandBrake Settings 
 strSubtitleSettings = " --native-language eng --subtitle-forced scan --subtitle scan"
 strOtherSettings 	= " --markers "
+'The folder below will be created and encoded video will be placed there
 strOutputFolder 	= "Encoded Files"
+
+
 '================================================================================
 '							Modify Below at Your Own Risk
 '================================================================================
@@ -77,11 +81,12 @@ strAC3 = "False"
 
 'Main routine
 
-Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
-If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
+'Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
+'If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
 		'Wscript.Echo "Found HandBrakeCLI"                				'Alterts user that handbrake has been found
-		FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
-		Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
+'		FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
+	'	Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
+		DependChk
 		CreateFolder (strOutputFolder)
 		
 		Set objFSOEncode = CreateObject("Scripting.FileSystemObject")
@@ -95,12 +100,35 @@ If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files 
 		objFile.Close
 		Wscript.quit
 	
+	'Else																'If HandBrake not found prompt user to locate it		
+	'	Wscript.Echo "Cannot locate HandBrake please download and install to c:\handbrake"
+	'	Wscript.quit
+'End If
+
+sub DependChk
+	Set objFSOSearch = CreateObject("Scripting.FileSystemObject")			'System calls for accessing file system
+	If objFSOSearch.FileExists(strHBlocation) Then							'Looks for handBrake files in location specified in the user settings
+		'Wscript.Echo "Found HandBrakeCLI"                				'Alterts user that handbrake has been found
+		FindFiles (".\")												'gather files in script directory with correct extensions, lists them in FileList.txt
+		Wscript.Echo "Found HandBrakeCLI" & vbcrlf & vbcrlf & "Found " & FileCount & " Video Files" & vbcrlf & " Press OK to begin encoding."
+		'CreateFolder (strOutputFolder)
+		'
+		'Set objFSOEncode = CreateObject("Scripting.FileSystemObject")
+		'Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)
+	'
+		'Do Until objFile.AtEndOfStream
+		'	PathofMovie = objFile.ReadLine
+		'	Encode PathofMovie, strHBlocation
+		'	Logger strCLIcommands, Movie2Encode	
+		'Loop
+		'objFile.Close
+		'Wscript.quit
+	
 	Else																'If HandBrake not found prompt user to locate it		
 		Wscript.Echo "Cannot locate HandBrake please download and install to c:\handbrake"
 		Wscript.quit
-End If
-
-
+	End If
+	End Sub
 
 Sub Encode (Movie2Encode, HBPath)
 	Set WshShellEncode = WScript.CreateObject("WScript.Shell")
@@ -115,7 +143,7 @@ Sub Encode (Movie2Encode, HBPath)
 	wscript.echo strAC3 & vbcrlf & strNonAACAudio
 	End If
 	WshShellEncode.Run strCLIcommands, 1, true								'Begins the encoding proceess using switchs defined in strings at begging of script
-End Sub
+	End Sub
 
 Sub Logger (LogEntry, FileEncoded)										'Logging routine saves txt file in the same folder as the script detailing files encoded, 
 	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'Inports file system calls																'if files exsists apends the file, otherwise creates the log file and writes data

@@ -40,9 +40,9 @@ Filetype10 = "zzz"
 
 '****************************** Encoder Settings *********************************
 'Location of HandBrake exe files
-	strHBlocation 		= "C:\handbrake\HandBrakeCLI.exe" 
+	strHBlocation 		= "C:\handbrake\HandBrakeCLI.exe"
 'Location of MPlayer exe files
-	strMPLocation		= "C:\mplayer\mplayer.exe"		  
+	strMPLocation		= "C:\mplayer\mplayer.exe"
 
 	
 'conatiner for new video files
@@ -70,6 +70,7 @@ strOutputFolder 	= "Encoded Files"
 '================================================================================
 '							Modify Below at Your Own Risk
 '================================================================================
+dim CurPath
 dim FileCount			'number of files that will be encoded
 dim strCLIcommands		'String  containing the location of HB, CLI paramaters, 
 dim Movie2Encode	
@@ -78,17 +79,23 @@ FileCount 	= 0
 CLIcommands = "Error no files to encode"
 strAC3 		= "False"	
 
+
+'Set objFSOScriptPath = CreateObject("Scripting.FileSystemObject")	
+CurPath = CreateObject("Scripting.FileSystemObject").GetAbsolutePathName(".") & "\" 
+
+
 'Main routine
+
 DependChk 			'check if the files needed to run script are present in spec'd location
 CreateFolder (strOutputFolder)	'creates a folder for encoded files
-	
+
 Set objFSOEncode = CreateObject("Scripting.FileSystemObject")	'connects to system object to read text files
 Set objFile = objFSOEncode.OpenTextFile(".\FileList.txt",1)		'opens the list of files with correct extensions
-	
+
 	Do Until objFile.AtEndOfStream				'for each file in the filelist.txt					
 		PathofMovie = objFile.ReadLine			'read in the location of the file
 		Encode PathofMovie, strHBlocation		'encode the file 
-		Logger strCLIcommands, Movie2Encode		'log the action taken by the encoder
+		Logger strCLIcommands, PathofMovie		'log the action taken by the encoder
 	Loop										'do it untill all the files have been encoded
 	objFile.Close								'closes the system object used to read the filelist
 	Wscript.quit								'close the script
@@ -116,19 +123,23 @@ sub DependChk
 	End Sub
 
 Sub Encode (Movie2Encode, HBPath)
-	Set WshShellEncode = WScript.CreateObject("WScript.Shell")
-	intTitleLength = Len(Movie2Encode) -4
-	strOutputName = Left(Movie2Encode, intTitleLength)
+	Set WshShellEncode 	= WScript.CreateObject("WScript.Shell")	'system object to run files
+	intTitleLength 		= Len(Movie2Encode) -4						'length of file 
+	strOutputName 		= Left(Movie2Encode, intTitleLength)
 	AC3Check (Movie2Encode)
 	If strAC3 = "True" Then
-		'strCLIcommands = HBPath & strVideoSettings & strX264Settings & strAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType & " --input " & Movie2Encode & " --output " & ".\" & strOutputFolder & "\" & strOutputName & "." & strContainerType
-	wscript.echo strAC3 & vbcrlf & strAACAudio
+		strCLISettings 	= strVideoSettings & strX264Settings & strAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
+		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
+		strCLIOuput 	= " --output " & chr(34) & CurPath  & strOutputFolder  & "\" & strOutputName & "." & strContainerType & chr(34)
+		strCLICommands	= HBPath  & strCLISettings & strCLIInput & strCLIOuput & strCLICommands
 	Else
-		'strCLIcommands = HBPath & strVideoSettings & strX264Settings & strNonAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType & " --input " & Movie2Encode & " --output " & ".\" & strOutputFolder & "\" & strOutputName & "." & strContainerType
-	wscript.echo strAC3 & vbcrlf & strNonAACAudio
+		strCLISettings 	= strVideoSettings & strX264Settings & strNonAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
+		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
+		strCLIOuput 	= " --output " & chr(34) & CurPath  & strOutputFolder  & "\" & strOutputName & "." & strContainerType & chr(34)
+		strCLICommands	= HBPath  & strCLISettings & strCLIInput & strCLIOuput & strCLICommands
 	End If
-	WshShellEncode.Run strCLIcommands, 1, true								'Begins the encoding proceess using switchs defined in strings at begging of script
-	End Sub
+	WshShellEncode.Run strCLICommands, 1, true								'Begins the encoding proceess using switchs defined in strings at begging of script
+		End Sub
 
 Sub Logger (LogEntry, FileEncoded)										'Logging routine saves txt file in the same folder as the script detailing files encoded, 
 	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'Inports file system calls																'if files exsists apends the file, otherwise creates the log file and writes data
@@ -145,6 +156,10 @@ Sub Logger (LogEntry, FileEncoded)										'Logging routine saves txt file in t
 			objLogFile.WriteLine vbcrlf & now & vbcrlf & "     Encoded " & FileEncoded & vbcrlf & "     With the following parameters:" & vbcrlf & "     " & LogEntry
 			objLogFile.Close
 		End If
+	strCLISettings 		= ""
+	strCLIInput			= ""
+	strCLIOuput			= ""
+	strCLICommands		= ""
 	End Sub
 	
 Sub AC3Check (File2Chk)
@@ -181,34 +196,34 @@ sub FindFiles (sFolder)
 	For each folderIdx In files
 		strext = Right(folderIdx.Name,3)
 			If strext = Filetype1 Then
-				NewFile.WriteLine(folder & "\" & folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype2 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype3 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype4 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype5 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype6 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf ostrext = Filetype7 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype8 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype9 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype10 Then
-				NewFile.WriteLine(folder & "\"& folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)
 				FileCount = FileCount + 1
 		End If
 	

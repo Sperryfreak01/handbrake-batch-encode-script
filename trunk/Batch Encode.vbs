@@ -65,11 +65,14 @@ strSubtitleSettings = " --native-language eng --subtitle-forced scan --subtitle 
 strOtherSettings 	= " --markers "
 'The folder below will be created and encoded video will be placed there
 strOutputFolder 	= "Encoded Files"
+strLogFileName		= "Encoder Log.txt"
 
 
 '================================================================================
 '							Modify Below at Your Own Risk
 '================================================================================
+Const ForAppending = 8
+Const ForReading = 1
 dim CurPath
 dim FileCount			'number of files that will be encoded
 dim strCLIcommands		'String  containing the location of HB, CLI paramaters, 
@@ -123,36 +126,40 @@ sub DependChk
 	End Sub
 
 Sub Encode (Movie2Encode, HBPath)
-	Set WshShellEncode 	= WScript.CreateObject("WScript.Shell")	'system object to run files
-	intTitleLength 		= Len(Movie2Encode) -4						'length of file 
-	strOutputName 		= Left(Movie2Encode, intTitleLength)
-	AC3Check (Movie2Encode)
-	If strAC3 = "True" Then
+	Set WshShellEncode 	= WScript.CreateObject("WScript.Shell")		'system object to interact with file system
+	intTitleLength 		= Len(Movie2Encode) -4						'length of files without exstension	
+	strOutputName 		= Left(Movie2Encode, intTitleLength)		'cleanse the extension from the filename
+	AC3Check (Movie2Encode)											'detect AC3 audio in the video file
+	If strAC3 = "True" Then						'If AC3 audio present then generate settings with AC3 audio 
 		strCLISettings 	= strVideoSettings & strX264Settings & strAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
 		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
 		strCLIOuput 	= " --output " & chr(34) & CurPath  & strOutputFolder  & "\" & strOutputName & "." & strContainerType & chr(34)
 		strCLICommands	= HBPath  & strCLISettings & strCLIInput & strCLIOuput & strCLICommands
-	Else
+	Else										'If AC3 audio present then generate settings with nonAC3 settings
 		strCLISettings 	= strVideoSettings & strX264Settings & strNonAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
 		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
 		strCLIOuput 	= " --output " & chr(34) & CurPath  & strOutputFolder  & "\" & strOutputName & "." & strContainerType & chr(34)
 		strCLICommands	= HBPath  & strCLISettings & strCLIInput & strCLIOuput & strCLICommands
 	End If
-	WshShellEncode.Run strCLICommands, 1, true								'Begins the encoding proceess using switchs defined in strings at begging of script
+	WshShellEncode.Run strCLICommands, 1, true						'Encodes file with settings gennerated above
 		End Sub
 
-Sub Logger (LogEntry, FileEncoded)										'Logging routine saves txt file in the same folder as the script detailing files encoded, 
-	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'Inports file system calls																'if files exsists apends the file, otherwise creates the log file and writes data
-		If objFSOLogger.FileExists(".\" & strOutputFolder & "\" & "Encoding Log.txt") Then				'Checks if log file exsits if yes it apends data to file
-			Const ForAppending = 8
-			Set objFSOCreateLog = CreateObject("Scripting.FileSystemObject")	'Info below is the information apended to the txt file
-			Set objLogFile = objFSOCreateLog.OpenTextFile(".\" & strOutputFolder & "\" & "Encoding Log.txt", ForAppending)
-			objLogFile.WriteLine vbcrlf & now & vbcrlf & "     Encoded " & FileEncoded & vbcrlf & "     With the following parameters:" & vbcrlf & "     " & LogEntry
+Sub Logger (LogEntry, FileEncoded)										'Logs encoder actions
+	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'System calls to interact with file system																'if files exsists apends the file, otherwise creates the log file and writes data
+		If objFSOLogger.FileExists( ".\"  & strOutputFolder  & "\" & strLogFileName  ) Then		'Checks if log file exsits if yes it apends data to file
+			wscript.echo chr(34) & CurPath  & strOutputFolder  & "\" & strLogFileName & chr(34)
+			Set objFSOCreateLog = CreateObject("Scripting.FileSystemObject")	'Sets log file for apending
+			Set objLogFile = objFSOCreateLog.OpenTextFile(".\"  & strOutputFolder  & "\" & strLogFileName , ForAppending)
+			objLogFile.WriteLine now 
+			objLogFile.WriteLine "     Encoded " & FileEncoded
+			objLogFile.WriteLine "     With the following parameters:" 
+			objLogfile.WriteLine "     " & LogEntry
 			objLogFile.Close
 			
 		Else 
+			wscript.echo chr(34) & CurPath  & strOutputFolder  & "\" & strLogFileName & chr(34)
 			Set objFSOCreateLog = CreateObject("Scripting.FileSystemObject")	'If text file not present when checked above then create and add data
-			Set objLogFile = objFSOCreateLog.CreateTextFile(".\" & strOutputFolder & "\" & "Encoding Log.txt") 'creates teh Encoding Log.txt file in same foler as script
+			Set objLogFile = objFSOCreateLog.CreateTextFile(".\"  & strOutputFolder  & "\" & strLogFileName ) 'creates teh Encoding Log.txt file in same foler as script
 			objLogFile.WriteLine vbcrlf & now & vbcrlf & "     Encoded " & FileEncoded & vbcrlf & "     With the following parameters:" & vbcrlf & "     " & LogEntry
 			objLogFile.Close
 		End If

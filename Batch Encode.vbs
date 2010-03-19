@@ -130,6 +130,8 @@ Sub Encode (Movie2Encode, HBPath)
 	intTitleLength 		= Len(Movie2Encode) -4						'length of files without exstension	
 	strOutputName 		= Left(Movie2Encode, intTitleLength)		'cleanse the extension from the filename
 	AC3Check (Movie2Encode)											'detect AC3 audio in the video file
+	
+	wscript.echo strAC3
 	If strAC3 = "True" Then						'If AC3 audio present then generate settings with AC3 audio 
 		strCLISettings 	= strVideoSettings & strX264Settings & strAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
 		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
@@ -141,39 +143,42 @@ Sub Encode (Movie2Encode, HBPath)
 		strCLIOuput 	= " --output " & chr(34) & CurPath  & strOutputFolder  & "\" & strOutputName & "." & strContainerType & chr(34)
 		strCLICommands	= HBPath  & strCLISettings & strCLIInput & strCLIOuput & strCLICommands
 	End If
+	
 	WshShellEncode.Run strCLICommands, 1, true						'Encodes file with settings gennerated above
 		End Sub
 
 Sub Logger (LogEntry, FileEncoded)										'Logs encoder actions
-	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'System calls to interact with file system																'if files exsists apends the file, otherwise creates the log file and writes data
+	Set objFSOLogger = CreateObject("Scripting.FileSystemObject")		'System calls to interact with file system																
 		If objFSOLogger.FileExists( ".\"  & strOutputFolder  & "\" & strLogFileName  ) Then		'Checks if log file exsits if yes it apends data to file
-			wscript.echo chr(34) & CurPath  & strOutputFolder  & "\" & strLogFileName & chr(34)
 			Set objFSOCreateLog = CreateObject("Scripting.FileSystemObject")	'Sets log file for apending
 			Set objLogFile = objFSOCreateLog.OpenTextFile(".\"  & strOutputFolder  & "\" & strLogFileName , ForAppending)
-			objLogFile.WriteLine now 
-			objLogFile.WriteLine "     Encoded " & FileEncoded
-			objLogFile.WriteLine "     With the following parameters:" 
-			objLogfile.WriteLine "     " & LogEntry
+			objLogFile.WriteLine now 									'print the time the file was encoded
+			objLogFile.WriteLine "     Encoded " & FileEncoded			'print the file that was encoded
+			objLogFile.WriteLine "     With the following parameters:" 	'buffer text
+			objLogfile.WriteLine "     " & LogEntry						'prints the raw paramaters that were passed to handbrake
 			objLogFile.Close
 			
 		Else 
-			wscript.echo chr(34) & CurPath  & strOutputFolder  & "\" & strLogFileName & chr(34)
 			Set objFSOCreateLog = CreateObject("Scripting.FileSystemObject")	'If text file not present when checked above then create and add data
 			Set objLogFile = objFSOCreateLog.CreateTextFile(".\"  & strOutputFolder  & "\" & strLogFileName ) 'creates teh Encoding Log.txt file in same foler as script
-			objLogFile.WriteLine vbcrlf & now & vbcrlf & "     Encoded " & FileEncoded & vbcrlf & "     With the following parameters:" & vbcrlf & "     " & LogEntry
+			objLogFile.WriteLine now 									'print the time the file was encoded
+			objLogFile.WriteLine "     Encoded " & FileEncoded			'print the file that was encoded
+			objLogFile.WriteLine "     With the following parameters:" 	'buffer text
+			objLogfile.WriteLine "     " & LogEntry						'prints the raw paramaters that were passed to handbrake
 			objLogFile.Close
 		End If
-	strCLISettings 		= ""
-	strCLIInput			= ""
-	strCLIOuput			= ""
-	strCLICommands		= ""
+	
+	strCLISettings 		= ""								'clears the string for the next round	
+	strCLIInput			= ""								'clears the string for the next round	
+	strCLIOuput			= ""								'clears the string for the next round	
+	strCLICommands		= ""								'clears the string for the next round	
 	End Sub
 	
-Sub AC3Check (File2Chk)
+Sub AC3Check (File2Chk)										'Checks for AC3 audio
 
-	Set objShell = CreateObject("WScript.Shell")	
-	Set objWshScriptExec = objShell.Exec("C:\mplayer\mplayer.exe -vo null -ao null -frames 0 -identify" & File2Chk)
-	Set objStdOut = objWshScriptExec.StdOut
+	Set objShell = CreateObject("WScript.Shell")			'system object for file system access
+	Set objWshScriptExec = objShell.Exec("C:\mplayer\mplayer.exe -vo null -ao null -frames 0 -identify" & File2Chk)	
+	Set objStdOut = objWshScriptExec.StdOut					'Capture the text on the screen 
 	
 	Do Until objStdOut.AtEndOfStream Or strAC3 = "True"
 		strLine = objStdOut.ReadLine

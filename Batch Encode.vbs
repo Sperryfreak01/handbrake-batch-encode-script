@@ -131,7 +131,6 @@ Sub Encode (Movie2Encode, HBPath)
 	strOutputName 		= Left(Movie2Encode, intTitleLength)		'cleanse the extension from the filename
 	AC3Check (Movie2Encode)											'detect AC3 audio in the video file
 	
-	wscript.echo strAC3
 	If strAC3 = "True" Then						'If AC3 audio present then generate settings with AC3 audio 
 		strCLISettings 	= strVideoSettings & strX264Settings & strAACAudio & strSubtitleSettings & strOtherSettings & " --format " & strContainerType
 		strCLIInput 	= " --input " & chr(34) & CurPath & Movie2Encode & chr(34)
@@ -175,31 +174,31 @@ Sub Logger (LogEntry, FileEncoded)										'Logs encoder actions
 	End Sub
 	
 Sub AC3Check (File2Chk)										'Checks for AC3 audio
-
+	strAC3 = ""												'clears the AC3 flag for each iteration
 	Set objShell = CreateObject("WScript.Shell")			'system object for file system access
-	Set objWshScriptExec = objShell.Exec("C:\mplayer\mplayer.exe -vo null -ao null -frames 0 -identify" & File2Chk)	
+	Set objWshScriptExec = objShell.Exec("C:\mplayer\mplayer.exe -vo null -ao null -frames 0 -identify " & File2Chk)	
 	Set objStdOut = objWshScriptExec.StdOut					'Capture the text on the screen 
 	
-	Do Until objStdOut.AtEndOfStream Or strAC3 = "True"
+	Do Until objStdOut.AtEndOfStream Or strAC3 = "True"		'check each line cap'd from screen untill done or AC3 found
 		strLine = objStdOut.ReadLine
-		If strLine = "ID_AUDIO_CODEC=ffac3" Then
+		If strLine = "ID_AUDIO_CODEC=ffac3" Then			'the String indicating AC3 codec being used
 			strAC3 = "True"
 		Else
 			strAC3 = "False"
 		End If
-	Loop
+	Loop													'repeat until intital conditions met
 	End Sub
 
 sub FindFiles (sFolder)
-	On Error Resume Next
-	Dim fso, folder, files, NewsFile, strext', sFolder
+	On Error Resume Next								'resume on error, for when folder exsists
+	Dim fso, folder, files, NewsFile, strext', sFolder	'declare local variables
   
-	Set fso = CreateObject("Scripting.FileSystemObject")
-	sFolder = Wscript.Arguments.Item(0)
-		If sFolder = "" Then
-			Wscript.Echo "No Folder parameter was passed"
-			Wscript.Quit
-		End If
+	Set fso = CreateObject("Scripting.FileSystemObject") 'open file system objects
+	'sFolder = Wscript.Arguments.Item(0)					
+	'	If sFolder = "" Then							
+	'		Wscript.Echo "No Folder parameter was passed"
+	'		Wscript.Quit
+	'	End If
 		Set NewFile = fso.CreateTextFile(".\FileList.txt", True)
 		Set folder = fso.GetFolder(sFolder)
 		Set files = folder.Files

@@ -190,7 +190,7 @@ Sub AC3Check (File2Chk)										'Checks for AC3 audio
 	End Sub
 
 sub FindFiles (sFolder)
-	On Error Resume Next								'resume on error, for when folder exsists
+	On Error Resume Next								
 	Dim fso, folder, files, NewsFile, strext', sFolder	'declare local variables
   
 	Set fso = CreateObject("Scripting.FileSystemObject") 'open file system objects
@@ -199,18 +199,18 @@ sub FindFiles (sFolder)
 	'		Wscript.Echo "No Folder parameter was passed"
 	'		Wscript.Quit
 	'	End If
-		Set NewFile = fso.CreateTextFile(".\FileList.txt", True)
-		Set folder = fso.GetFolder(sFolder)
-		Set files = folder.Files
+		Set NewFile = fso.CreateTextFile(".\FileList.txt", True)	'open file system object for writing to a text file
+		Set folder = fso.GetFolder(sFolder)				'Open file system obj to read inside a folder
+		Set files = folder.Files						'for each loop files equals 1 file in the folder
 		FileCount = 0
 	
-	For each folderIdx In files
-		strext = Right(folderIdx.Name,3)
-			If strext = Filetype1 Then
-				NewFile.WriteLine(folderIdx.Name)
-				FileCount = FileCount + 1
+	For each folderIdx In files						'
+		strext = Right(folderIdx.Name,3)			'cleanse file name of all but extension
+			If strext = Filetype1 Then				'check if the extension matches what the user entered
+				NewFile.WriteLine(folderIdx.Name)	'If so then same the file name to the text file
+				FileCount = FileCount + 1			'Increase the counter containing the # of files	
 			ElseIf strext = Filetype2 Then
-				NewFile.WriteLine(folderIdx.Name)
+				NewFile.WriteLine(folderIdx.Name)	'Repeat for each file extension the user listed
 				FileCount = FileCount + 1
 			ElseIf strext = Filetype3 Then
 				NewFile.WriteLine(folderIdx.Name)
@@ -239,17 +239,19 @@ sub FindFiles (sFolder)
 		End If
 	
 	Next 
-	NewFile.Close
+	NewFile.Close									'Close the text file
 	End Sub
 			
 
-			
-		
 sub CreateFolder (MakeFolder)		
-	'Create FileSystemObject. So we can apply .createFolder method
-	Set objFSOFolder = CreateObject("Scripting.FileSystemObject")
-	On Error Resume Next
-	objFSOFolder.CreateFolder(".\" & MakeFolder)
+	Set objFSOFolder = CreateObject("Scripting.FileSystemObject")	'System calls for accessing file system
+		
+	If  objFSOFolder.FolderExists(MakeFolder) Then	'Check if the folder exsists alread
+													'If it does do nothing
+		Else 										
+			objFSOFolder.CreateFolder(MakeFolder)	'If not create the folder
+		
+		End IF
+	
 	End Sub 
-
  
